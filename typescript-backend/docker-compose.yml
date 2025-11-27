@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  nextjs:
+    build: .
+    container_name: neuroedge_next
+    ports:
+      - "3000:3000"
+      - "8081:8081" # ws socket proxy
+      - "8082:8082" # uws proxy
+    environment:
+      - PY_BACKEND_URL=http://python:8000
+      - GO_BACKEND_URL=http://go:9000
+      - PY_WS_URL=ws://python:8000/ws/metrics
+      - NEXT_INTERNAL_API_KEY=changeme_internal_key
+      - NEXT_PUBLIC_API_KEY=changeme_public_key
+      - NEXT_ALLOW_ORIGINS=*
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - python
+      - go
+      - redis
+
+  python:
+    build: ./backend-python
+    container_name: neuroedge_python
+    ports:
+      - "8000:8000"
+    environment:
+      - NEUROEDGE_AUTO_PURGE=0
+
+  go:
+    build: ./go-backend
+    container_name: neuroedge_go
+    ports:
+      - "9000:9000"
+    environment:
+      - SOME_GO_ENV=1
+
+  redis:
+    image: redis:7-alpine
+    container_name: neuroedge_redis
+    ports:
+      - "6379:6379"

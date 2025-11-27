@@ -1,0 +1,13 @@
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "neuroedge-go.fullname" . }}-tls
+spec:
+  secretName: {{ include "neuroedge-go.fullname" . }}-tls
+  issuerRef:
+    name: {{ .Values.certManager.issuerName | default "letsencrypt-prod" }}
+    kind: ClusterIssuer
+  commonName: {{ .Values.hostname | default "neuroedge.local" }}
+  dnsNames:
+    - {{ .Values.hostname | default "neuroedge.local" }}

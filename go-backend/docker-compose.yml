@@ -1,0 +1,44 @@
+
+version: "3.8"
+services:
+  neuroedge-go:
+    build: .
+    container_name: neuroedge_go
+    ports:
+      - "9000:9000"
+    environment:
+      - PORT=9000
+      - SERVICE_NAME=neuroedge-go
+      - REDIS_URL=redis://redis:6379
+      - PY_BACKEND_URL=http://python:8000
+      - TS_BACKEND_URL=http://nextjs:3000
+    depends_on:
+      - redis
+      - python
+      - nextjs
+
+  python:
+    image: python:3.11-slim
+    container_name: neuroedge_python
+    command: ["sleep", "infinity"]
+
+  nextjs:
+    image: node:20-alpine
+    container_name: neuroedge_nextjs
+    command: ["sleep", "infinity"]
+
+  redis:
+    image: redis:7-alpine
+    container_name: neuroedge_redis
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: neuroedge_postgres
+    environment:
+      - POSTGRES_USER=neuro
+      - POSTGRES_PASSWORD=neuro
+      - POSTGRES_DB=neuroedge
+    ports:
+      - "5432:5432"

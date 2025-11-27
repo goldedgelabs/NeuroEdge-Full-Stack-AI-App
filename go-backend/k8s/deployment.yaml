@@ -1,0 +1,28 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neuroedge-go
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neuroedge-go
+  template:
+    metadata:
+      labels:
+        app: neuroedge-go
+    spec:
+      containers:
+        - name: neuroedge-go
+          image: neuroedge-go:latest
+          env:
+            - name: POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: neuroedge-secrets
+                  key: postgres_url
+            - name: REDIS_URL
+              value: redis://redis:6379
+          ports:
+            - containerPort: 9000

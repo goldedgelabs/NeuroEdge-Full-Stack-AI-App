@@ -1,0 +1,29 @@
+
+replicaCount: 1
+image:
+  repository: neuroedge-go
+  tag: latest
+service:
+  port: 9000
+postgres:
+  enabled: false
+  url: ""
+redis:
+  enabled: false
+
+certManager:
+  issuerName: letsencrypt-prod
+hostname: neuroedge.local
+tls:
+  crt: ""
+  key: ""
+
+ingress:
+  enabled: false
+  hosts:
+    - host: neuroedge.example.com
+      paths:
+        - /
+  tls: []
+certManager:
+  enabled: true

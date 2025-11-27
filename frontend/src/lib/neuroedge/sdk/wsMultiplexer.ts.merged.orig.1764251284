@@ -1,0 +1,35 @@
+
+type Handler = (data:any)=>void;
+export default class WSMultiplexer {
+  socket: WebSocket|null = null;
+  handlers: Record<string, Handler[]> = {};
+  url: string;
+  reconnectInterval: number = 1000;
+  maxReconnect: number = 30000;
+  heartbeatInterval: number = 30000;
+  pingTimer: any = null;
+  constructor(url:string){ this.url = url; this.connect(); }
+  connect(){
+    this.socket = new WebSocket(this.url);
+    this.socket.onmessage = (e)=> this.handle(e);
+    this.socket.onopen = ()=>{ console.log('ws open'); this.reconnectInterval = 1000; this.startHeartbeat(); };
+    this.socket.onclose = ()=>{ console.log('ws close'); this.stopHeartbeat(); this.scheduleReconnect(); };
+    this.socket.onerror = (e:any)=>{ console.log('ws error', e); try{ this.socket?.close(); }catch(_){} };
+  }
+  scheduleReconnect(){
+    const t = Math.min(this.reconnectInterval * 2, this.maxReconnect);
+    setTimeout(()=> this.connect(), this.reconnectInterval);
+    this.reconnectInterval = t;
+  }
+  startHeartbeat(){
+    this.stopHeartbeat();
+    this.pingTimer = setInterval(()=>{
+      try{ this.send('__ping__', { t: Date.now() }); }catch(e){}
+    }, this.heartbeatInterval);
+  }
+  stopHeartbeat(){ if(this.pingTimer) { clearInterval(this.pingTimer); this.pingTimer = null; } }
+  register(channel:string, h:Handler){ if(!this.handlers[channel]) this.handlers[channel]=[]; this.handlers[channel].push(h); }
+  handle(e:MessageEvent){ try{ const msg = JSON.parse(e.data); if(msg.channel && this.handlers[msg.channel]){ this.handlers[msg.channel].forEach(h=>h(msg.payload)); } }catch(err){} }
+  send(channel:string, payload:any){ if(this.socket && this.socket.readyState===1) this.socket.send(JSON.stringify({ channel, payload })); }
+  close(){ if(this.socket) this.socket.close(); this.stopHeartbeat(); }
+}

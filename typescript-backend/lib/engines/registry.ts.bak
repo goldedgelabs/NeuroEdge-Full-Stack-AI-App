@@ -1,0 +1,46 @@
+// Auto-generated engine registry
+export const engines = {} as any;
+
+// found: core/agentEngineBridge.ts
+try { engines['agentEngineBridge'] = require('./core/agentEngineBridge').default || require('./core/agentEngineBridge'); } catch(e) { engines['agentEngineBridge'] = null; }
+engines['PlaceholderEngine2'] = null;
+engines['PlaceholderEngine3'] = null;
+engines['PlaceholderEngine4'] = null;
+engines['PlaceholderEngine5'] = null;
+engines['PlaceholderEngine6'] = null;
+engines['PlaceholderEngine7'] = null;
+engines['PlaceholderEngine8'] = null;
+engines['PlaceholderEngine9'] = null;
+engines['PlaceholderEngine10'] = null;
+engines['PlaceholderEngine11'] = null;
+engines['PlaceholderEngine12'] = null;
+engines['PlaceholderEngine13'] = null;
+engines['PlaceholderEngine14'] = null;
+engines['PlaceholderEngine15'] = null;
+engines['PlaceholderEngine16'] = null;
+engines['PlaceholderEngine17'] = null;
+engines['PlaceholderEngine18'] = null;
+engines['PlaceholderEngine19'] = null;
+engines['PlaceholderEngine20'] = null;
+engines['PlaceholderEngine21'] = null;
+engines['PlaceholderEngine22'] = null;
+engines['PlaceholderEngine23'] = null;
+engines['PlaceholderEngine24'] = null;
+engines['PlaceholderEngine25'] = null;
+engines['PlaceholderEngine26'] = null;
+engines['PlaceholderEngine27'] = null;
+engines['PlaceholderEngine28'] = null;
+engines['PlaceholderEngine29'] = null;
+engines['PlaceholderEngine30'] = null;
+engines['PlaceholderEngine31'] = null;
+engines['PlaceholderEngine32'] = null;
+engines['PlaceholderEngine33'] = null;
+engines['PlaceholderEngine34'] = null;
+engines['PlaceholderEngine35'] = null;
+engines['PlaceholderEngine36'] = null;
+engines['PlaceholderEngine37'] = null;
+engines['PlaceholderEngine38'] = null;
+engines['PlaceholderEngine39'] = null;
+engines['PlaceholderEngine40'] = null;
+engines['PlaceholderEngine41'] = null;
+engines['PlaceholderEngine42'] = null;

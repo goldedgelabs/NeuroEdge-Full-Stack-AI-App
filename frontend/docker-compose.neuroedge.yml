@@ -1,0 +1,39 @@
+
+version: '3.8'
+services:
+  frontend:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - TS_BACKEND_URL=http://ts-backend:4000
+      - PY_BACKEND_URL=http://py-backend:5000
+      - GO_BACKEND_URL=http://go-backend:9000
+    depends_on:
+      - ts-backend
+      - py-backend
+      - go-backend
+
+  ts-backend:
+    image: neuroedge-ts-backend:latest
+    ports: ["4000:4000"]
+
+  py-backend:
+    image: neuroedge-py-backend:latest
+    ports: ["5000:5000"]
+
+  go-backend:
+    image: neuroedge-go-backend:latest
+    ports: ["9000:9000"]
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: neuro
+      POSTGRES_PASSWORD: neuro
+      POSTGRES_DB: neuroedge
+    ports: ["5432:5432"]
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]

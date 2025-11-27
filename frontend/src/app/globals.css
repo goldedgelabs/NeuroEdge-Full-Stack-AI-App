@@ -1,0 +1,2 @@
+@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n/* global styles */
+body { margin: 0; }

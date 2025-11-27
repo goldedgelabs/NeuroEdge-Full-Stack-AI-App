@@ -1,0 +1,12 @@
+
+groups:
+- name: neuroedge.rules
+  rules:
+  - alert: EngineReloadFailuresHigh
+    expr: increase(neuroedge_engine_reload_failures_total[5m]) > 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Engine reload failures detected"
+      description: "One or more engine reloads failed in the last 5 minutes"

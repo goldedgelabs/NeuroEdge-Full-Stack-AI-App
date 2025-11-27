@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>NeuroEdge Operator UI (Minimal)</title>
+  <style>
+    body{font-family:system-ui, Arial; padding:20px;}
+    h1{font-size:20px}
+    pre{background:#f5f5f5;padding:10px;border-radius:6px;overflow:auto}
+    .col{display:inline-block;vertical-align:top;width:48%;margin-right:2%}
+  </style>
+</head>
+<body>
+  <h1>NeuroEdge Operator UI (Dev)</h1>
+  <div class="col">
+    <h3>Health</h3>
+    <pre id="health">loading...</pre>
+    <h3>Agents</h3>
+    <pre id="agents">loading...</pre>
+  </div>
+  <div class="col">
+    <h3>Vectors (top)</h3>
+    <pre id="vectors">loading...</pre>
+    <h3>Proactive Log</h3>
+    <pre id="log">loading...</pre>
+  </div>
+<script>
+async function fetchJSON(path){try{return await (await fetch(path)).json();}catch(e){return {error:e.toString()}}}
+async function refresh(){
+  document.getElementById('health').textContent = JSON.stringify(await fetchJSON('/api/health'), null, 2);
+  document.getElementById('agents').textContent = JSON.stringify(await fetchJSON('/api/agents'), null, 2);
+  document.getElementById('vectors').textContent = JSON.stringify(await fetchJSON('/api/vectors/top?n=10'), null, 2);
+  document.getElementById('log').textContent = JSON.stringify(await fetchJSON('/api/proactive/log?limit=10'), null, 2);
+}
+setInterval(refresh, 3000);
+refresh();
+</script>
+</body>
+</html>

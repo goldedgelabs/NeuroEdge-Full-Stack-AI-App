@@ -1,0 +1,8 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "neuroedge-go.fullname" . }}-grafana-dashboards
+data:
+  dashboard_overview.json: |-
+{{ .Files.Get "observability/grafana/dashboard_overview.json" | indent 4 }}

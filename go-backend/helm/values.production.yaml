@@ -1,0 +1,30 @@
+
+replicaCount: 3
+image:
+  repository: neuroedge-go
+  tag: latest
+service:
+  port: 9000
+ingress:
+  enabled: true
+  hosts:
+    - host: neuroedge.example.com
+      paths:
+        - /
+  tls:
+    - secretName: neuroedge-tls
+      hosts:
+        - neuroedge.example.com
+postgres:
+  url: "postgres://neuro:neuro@postgres:5432/neuroedge"
+redis:
+  url: "redis://redis:6379"
+jwt:
+  secret: "REPLACE_WITH_PRODUCTION_SECRET"
+certManager:
+  enabled: true
+  issuerName: letsencrypt-prod
+hostname: neuroedge.example.com
+tls:
+  crt: ""
+  key: ""

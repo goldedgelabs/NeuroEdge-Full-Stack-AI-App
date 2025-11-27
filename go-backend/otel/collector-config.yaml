@@ -1,0 +1,16 @@
+
+receivers:
+  otlp:
+    protocols:
+      http:
+      grpc:
+
+exporters:
+  logging:
+    logLevel: debug
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [logging]

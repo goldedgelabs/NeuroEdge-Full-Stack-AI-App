@@ -1,0 +1,25 @@
+{
+  "title": "NeuroEdge Overview",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Engine Runs",
+      "targets": [
+        {
+          "expr": "sum(neuroedge_engine_runs_total) by (engine)",
+          "legendFormat": "{{engine}}"
+        }
+      ]
+    },
+    {
+      "type": "graph",
+      "title": "Reload Failures",
+      "targets": [
+        {
+          "expr": "sum(neuroedge_engine_reload_failures_total) by (engine)",
+          "legendFormat": "{{engine}}"
+        }
+      ]
+    }
+  ]
+}

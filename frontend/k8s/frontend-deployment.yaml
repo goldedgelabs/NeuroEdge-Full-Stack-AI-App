@@ -1,0 +1,23 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neuroedge-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: neuroedge-frontend
+  template:
+    metadata:
+      labels:
+        app: neuroedge-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: your-registry/neuroedge-frontend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_TS_BACKEND_URL
+              value: "http://ts-backend.default.svc.cluster.local:4000"

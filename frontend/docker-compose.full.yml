@@ -1,0 +1,30 @@
+
+version: '3.8'
+services:
+  frontend:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      - NEXT_PUBLIC_TS_BACKEND_URL=http://ts-backend:4000
+      - NEXT_PUBLIC_PY_BACKEND_URL=http://py-backend:5000
+      - NEXT_PUBLIC_GO_BACKEND_URL=http://go-backend:9000
+    depends_on: ['ts-backend','py-backend','go-backend']
+
+  ts-backend:
+    image: node:18-alpine
+    command: ["sh","-c","mkdir -p /tmp && printf '{"ok":true, "agents": []}' > /tmp/resp.json && npx http-server -p 4000 /tmp -c-1"]
+    ports:
+      - '4000:4000'
+
+  py-backend:
+    image: python:3.11-slim
+    command: ["sh","-c","python3 -m http.server 5000 --bind 0.0.0.0"]
+    ports:
+      - '5000:5000'
+
+  go-backend:
+    image: python:3.11-slim
+    command: ["sh","-c","mkdir -p /tmp && printf 'OK' > /tmp/index.html && python3 -m http.server 9000 -d /tmp"]
+    ports:
+      - '9000:9000'

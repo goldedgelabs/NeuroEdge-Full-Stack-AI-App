@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neuroedge-next
+  namespace: neuroedge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neuroedge-next
+  template:
+    metadata:
+      labels:
+        app: neuroedge-next
+    spec:
+      containers:
+        - name: neuroedge-next
+          image: neuroedge-next:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PY_BACKEND_URL
+              value: "http://python:8000"
+            - name: GO_BACKEND_URL
+              value: "http://go:9000"
+            - name: REDIS_URL
+              value: "redis://redis:6379"

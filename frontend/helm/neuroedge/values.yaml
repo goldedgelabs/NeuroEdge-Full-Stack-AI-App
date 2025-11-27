@@ -1,0 +1,12 @@
+
+replicaCount: 2
+image:
+  repository: your-registry/neuroedge-frontend
+  tag: latest
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  enabled: true
+  host: neuroedge.example.com
+  tlsSecretName: neuroedge-tls

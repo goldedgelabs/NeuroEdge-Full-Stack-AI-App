@@ -1,0 +1,25 @@
+
+NeuroEdge Frontend - Rebuilt
+
+This is a rebuilt Next.js App Router based frontend scaffold for NeuroEdge.
+
+Features included:
+- App Router + TypeScript
+- NeuroEdge client provider with TS/PY/GO backend clients
+- WebSocket hooks for metrics and recommendations
+- API proxy routes to backends
+- Simple auth token helpers
+- Docker Compose for local full-stack testing (placeholders for backend images)
+
+Next steps:
+- Replace backend image placeholders with your built backend images
+- Run `npm install` and `npm run dev` to start
+- Configure environment variables (TS_BACKEND_URL, PY_BACKEND_URL, GO_BACKEND_URL)
+
+## Next steps completed:
+- Added ws reconnection & heartbeat in sdk/wsMultiplexer.ts
+- Added Tailwind base setup
+- Added integration smoke test at tests/smoke.js
+- Added basic auth stubs for TS and Go backends if present
+
+Run `npm ci` and `npm run dev` then `node tests/smoke.js` to validate.

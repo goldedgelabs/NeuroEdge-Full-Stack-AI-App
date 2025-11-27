@@ -1,0 +1,30 @@
+package agents
+
+import (
+    "fmt"
+    "time"
+    "github.com/neuroedge/go-backend/core"
+)
+
+type PlannerAgent struct{}
+
+func NewPlannerAgent() *PlannerAgent { return &PlannerAgent{} }
+
+func (a *PlannerAgent) Name() string { return "PlannerAgent" }
+
+func (a *PlannerAgent) Init() error {
+    eb := core.GetEventBus()
+    eb.Subscribe("db:update", func(topic string, data interface{}) { fmt.Println("PlannerAgent received db:update", data) })
+    return nil
+}
+
+func (a *PlannerAgent) Run(payload map[string]interface{}) (map[string]interface{}, error) {
+    res := map[string]interface{}{"agent": "PlannerAgent", "received": payload, "ts": time.Now().UTC().String()}
+    return res, nil
+}
+
+func (a *PlannerAgent) Metrics() map[string]interface{} {
+    return map[string]interface{}{"name":"PlannerAgent", "uptime": 1}
+}
+
+func init() { core.RegisterAgent(NewPlannerAgent()) }

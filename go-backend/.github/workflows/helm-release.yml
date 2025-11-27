@@ -1,0 +1,17 @@
+
+name: Helm Release
+on:
+  push:
+    branches: [ main ]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+      - name: Helm upgrade/install
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        run: |
+          helm upgrade --install neuroedge ./helm/neuroedge-go -f ./helm/values.production.yaml

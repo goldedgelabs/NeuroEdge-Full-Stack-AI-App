@@ -1,0 +1,6 @@
+
+CREATE TABLE IF NOT EXISTS vectors (
+    id TEXT PRIMARY KEY,
+    vector DOUBLE PRECISION[],
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
