@@ -11,7 +11,7 @@
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
     "prepare": "husky install",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test" 
   },
   "dependencies": {
     "@headlessui/react": "1.7.18",
