@@ -1,231 +1,190 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import {
-  Moon, Sun, Send, Upload, Bot, User, Menu
-} from 'lucide-react';
+import React, { useState, useEffect, useRef, DragEvent } from 'react';
 
-import ReactMarkdown from "react-markdown";
+import ConversationFolders from '@/components/chat/ConversationFolders';
+import AgentSwitcher from '@/components/agents/AgentSwitcher';
+import AgentTools from '@/components/chat/AgentTools';
+import TokenMeter from '@/components/chat/TokenMeter';
+import AgentLogsPanel from '@/components/agents/AgentLogsPanel';
+import MessageItem from '@/components/chat/MessageItem';
 
+import { useConversations } from '@/hooks/useConversations';
 import useChatWS from '@/hooks/useChatWS';
 import { sendMessage, uploadFile, transcribeAudio } from '@/lib/chatApi';
 
-type Message = {
-  role: 'user' | 'assistant';
-  text?: string;
-  file?: any;
-};
+export default function ChatPage() {
+  const [activeConv, setActiveConv] = useState<string>();
+  const [activeAgent, setActiveAgent] = useState('neuro-core');
 
-export default function Page() {
-  const conversationId = "global"; // Later dynamic
+  const [input, setInput] = useState('');
+  const [streamBuffer, setStreamBuffer] = useState('');
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [streamBuffer, setStreamBuffer] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [dark, setDark] = useState(false);
-  const [activeAgent, setActiveAgent] = useState('NeuroEdge-Core');
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const { messages, appendMessage, updateMessage } =
+    useConversations(activeConv);
 
-  const AGENTS = [
-    'NeuroEdge-Core',
-    'Vision-Engine',
-    'Code-Engine',
-    'Predictive-Engine',
-    'SelfImprovement-Engine'
-  ];
-
-  // Auto-scroll
+  /* Auto scroll */
   useEffect(() => {
     if (scrollRef.current)
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, streamBuffer]);
 
-  // WebSocket Streaming
+  /* Websocket streaming binding */
   useChatWS(
-    conversationId,
-
-    // chunk event
-    (chunk) => {
-      setStreamBuffer((prev) => prev + chunk);
-    },
-
-    // final assembled message event
-    (fullMessage) => {
-      setMessages((prev) => [...prev, { role: 'assistant', text: fullMessage }]);
-      setStreamBuffer("");
+    activeConv || 'global',
+    chunk => setStreamBuffer(prev => prev + chunk),
+    full => {
+      appendMessage({ role: 'assistant', text: full });
+      setStreamBuffer('');
     }
   );
 
-  // Send text message
+  /* --- SEND MESSAGE --- */
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !activeConv) return;
 
-    const text = input.trim();
-    setMessages((m) => [...m, { role: "user", text }]);
+    appendMessage({ role: 'user', text: input });
+    await sendMessage(activeConv, input, activeAgent);
 
-    sendMessage(conversationId, text); // triggers WS stream
-    setInput("");
+    setInput('');
   };
 
-  // Handle file upload
-  const handleFile = async (ev: any) => {
-    const file = ev.target.files?.[0];
-    if (!file) return;
+  /* --- FILE UPLOAD --- */
+  const handleFile = async (file: File) => {
+    if (!activeConv) return;
 
     const meta = await uploadFile(file);
 
-    setMessages((m) => [
-      ...m,
-      { role: "user", file: meta, text: `Uploaded: ${meta.name}` }
-    ]);
+    appendMessage({
+      role: 'user',
+      file: meta,
+      text: `Uploaded: ${meta.name}`
+    });
   };
 
-  // Mic input → transcription
+  /* Drag & Drop support */
+  const onDrop = async (ev: DragEvent<HTMLDivElement>) => {
+    ev.preventDefault();
+    const file = ev.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const allowDrop = (ev: DragEvent<HTMLDivElement>) => {
+    ev.preventDefault();
+  };
+
+  /* --- MICROPHONE RECORDING → STT --- */
   const handleMic = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const recorder = new MediaRecorder(stream);
     const chunks: BlobPart[] = [];
 
-    recorder.ondataavailable = (e) => chunks.push(e.data);
-
+    recorder.ondataavailable = e => chunks.push(e.data);
     recorder.onstop = async () => {
-      const file = new File(chunks, "audio.webm", { type: "audio/webm" });
-      const result = await transcribeAudio(file);
-      setInput(result.text);
+      const file = new File(chunks, 'speech.webm', { type: 'audio/webm' });
+      const { text } = await transcribeAudio(file);
+      setInput(text);
     };
 
     recorder.start();
-    setTimeout(() => recorder.stop(), 3000);
+    setTimeout(() => recorder.stop(), 2500);
   };
 
   return (
-    <div className={`${dark ? 'dark bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800'} h-screen flex`}>
+    <div className="flex h-screen bg-app-dark text-gray-200">
 
-      {/* SIDEBAR */}
-      <div className={`fixed z-20 h-full top-0 left-0 bg-white dark:bg-gray-800 shadow-xl w-64 p-4
-        transform transition-all ${sidebarOpen ? 'translate-x-0' : '-translate-x-64'} md:translate-x-0`}>
-
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-          <Bot size={22}/> Agents
-        </h2>
-
-        <div className="space-y-2">
-          {AGENTS.map(a => (
-            <div
-              key={a}
-              onClick={() => setActiveAgent(a)}
-              className={`p-2 rounded-lg cursor-pointer transition ${
-                activeAgent === a
-                  ? 'bg-blue-600 text-white'
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              {a}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* LEFT SIDEBAR */}
+      <aside className="w-80 border-r border-gray-700 p-4 flex flex-col gap-4 bg-[#0d1320]">
+        <ConversationFolders onSelect={(id) => setActiveConv(id)} />
+        <AgentSwitcher active={activeAgent} onChange={setActiveAgent} />
+        {activeConv && <TokenMeter conversationId={activeConv} />}
+      </aside>
 
       {/* MAIN CHAT AREA */}
-      <div className="flex flex-col flex-1 h-full">
-
-        {/* TOP BAR */}
-        <div className="p-4 flex items-center justify-between shadow-sm bg-white dark:bg-gray-800">
-
-          <div className="flex items-center gap-3">
-            <button
-              className="md:hidden p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-              <Menu />
-            </button>
-
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              💬 Chat — <span className="text-blue-600">{activeAgent}</span>
-            </h1>
-          </div>
-
-          <button
-            onClick={() => setDark(!dark)}
-            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            {dark ? <Sun/> : <Moon/>}
-          </button>
-        </div>
-
-        {/* MESSAGES */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-4">
-
-          {messages.length === 0 && (
-            <p className="text-center text-gray-400 py-20">
-              Start a conversation with your AI assistant…
-            </p>
+      <main
+        className="flex-1 p-4 flex flex-col"
+        onDragOver={allowDrop}
+        onDrop={onDrop}
+      >
+        {/* MESSAGES SCROLL AREA */}
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-auto space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+        >
+          {!activeConv && (
+            <div className="flex h-full items-center justify-center text-gray-400">
+              Select or create a conversation…
+            </div>
           )}
 
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div
-                className={`max-w-[75%] px-4 py-3 rounded-2xl shadow-sm flex items-start gap-2 ${
-                  msg.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
-                }`}
-              >
-                {msg.role === 'assistant' ? <Bot size={20}/> : <User size={20}/>}
+          {activeConv &&
+            messages.map((m) => (
+              <MessageItem key={m.id} msg={m} onUpdate={() => updateMessage(m)} />
+            ))}
 
-                <div className="prose prose-invert max-w-none">
-                  {msg.file ? (
-                    <div>
-                      <p className="font-bold">{msg.file.name}</p>
-                      <p className="text-sm opacity-75">{msg.file.size} bytes</p>
-                    </div>
-                  ) : (
-                    <ReactMarkdown>{msg.text || ""}</ReactMarkdown>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* STREAMING BUBBLE */}
+          {/* STREAMING MESSAGE */}
           {streamBuffer && (
-            <div className="flex justify-start">
-              <div className="max-w-[75%] px-4 py-3 rounded-2xl shadow-sm bg-gray-300 dark:bg-gray-700">
-                <Bot size={18} className="opacity-70" />
-                <ReactMarkdown>{streamBuffer}</ReactMarkdown>
-                <span className="animate-pulse opacity-60">...</span>
-              </div>
+            <div className="max-w-[70%] bg-[#1a2332] px-4 py-3 rounded-xl border border-gray-700">
+              {streamBuffer}
+              <span className="animate-pulse">▋</span>
             </div>
           )}
         </div>
 
-        {/* INPUT BAR */}
-        <div className="p-4 flex items-center gap-3 bg-white dark:bg-gray-800 shadow-xl">
+        {/* AGENT TOOLS */}
+        {activeConv && (
+          <>
+            <div className="mt-3">
+              <AgentTools onRun={(tool) => alert(`Run tool ${tool}`)} />
+            </div>
 
-          {/* File Upload */}
-          <label className="p-3 rounded-xl border bg-gray-100 dark:bg-gray-700 cursor-pointer">
-            <Upload size={18}/>
-            <input type="file" className="hidden" onChange={handleFile}/>
-          </label>
+            {/* INPUT BAR */}
+            <div className="mt-3 flex items-center gap-3 bg-[#0f1624] border border-gray-700 p-3 rounded-xl shadow-soft">
+              
+              {/* Upload */}
+              <label className="p-2 rounded-lg bg-[#1a2332] cursor-pointer hover:bg-[#1f2a3e]">
+                <input type="file" className="hidden" onChange={(ev) => {
+                  const f = ev.target.files?.[0];
+                  if (f) handleFile(f);
+                }} />
+                📎
+              </label>
 
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Type a message…"
-            className="flex-1 rounded-xl p-3 border bg-gray-50 dark:bg-gray-700 dark:border-gray-600"
-          />
+              {/* Mic */}
+              <button
+                onClick={handleMic}
+                className="p-2 rounded-lg bg-[#1a2332] hover:bg-[#1f2a3e]"
+              >
+                🎤
+              </button>
 
-          <button
-            onClick={handleSend}
-            className="p-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
-          >
-            <Send size={18}/>
-          </button>
-        </div>
-      </div>
+              {/* Text input */}
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                placeholder="Type a message…"
+                className="flex-1 px-3 py-2 bg-[#0d1117] border border-gray-700 rounded-lg focus:outline-none"
+              />
+
+              {/* SEND */}
+              <button
+                onClick={handleSend}
+                className="px-4 py-2 bg-neuro-500 hover:bg-neuro-600 rounded-lg text-white font-medium shadow-glow"
+              >
+                Send
+              </button>
+            </div>
+          </>
+        )}
+      </main>
+
+      {/* RIGHT SIDEBAR */}
+      <aside className="w-80 border-l border-gray-700 p-4 bg-[#0d1320]">
+        <AgentLogsPanel agentId={activeAgent} />
+      </aside>
     </div>
   );
-    }
+                   }
