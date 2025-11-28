@@ -8,7 +8,7 @@ export type Message = {
   text: string;
   createdAt: number;
   streaming?: boolean;
-  reactions?: Record<string, number>; // e.g. { like: 1, dislike: 0 }
+  reactions?: Record<string, number>;
   read?: boolean;
   meta?: any;
 };
@@ -16,7 +16,7 @@ export type Message = {
 export type Conversation = {
   id: string;
   title: string;
-  folderId?: string | null;
+  folderId?: string|null;
   createdAt: number;
   updatedAt: number;
   pinned?: boolean;
@@ -30,15 +30,14 @@ export type Folder = {
 };
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
-
-export function db() {
+function getDB() {
   if (!dbPromise) {
-    dbPromise = openDB('neuroedge-db', 1, {
+    dbPromise = openDB('neuroedge-db', 2, {
       upgrade(db) {
-        db.createObjectStore('conversations', { keyPath: 'id' });
-        db.createObjectStore('messages', { keyPath: 'id' });
-        db.createObjectStore('folders', { keyPath: 'id' });
-        db.createObjectStore('meta', { keyPath: 'key' });
+        if (!db.objectStoreNames.contains('conversations')) db.createObjectStore('conversations', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('messages')) db.createObjectStore('messages', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('folders')) db.createObjectStore('folders', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('meta')) db.createObjectStore('meta', { keyPath: 'key' });
       }
     });
   }
@@ -47,47 +46,60 @@ export function db() {
 
 // Conversations
 export async function saveConversation(conv: Conversation) {
-  const d = await db();
+  const d = await getDB();
   conv.updatedAt = Date.now();
   await d.put('conversations', conv);
 }
+
 export async function getConversation(id: string) {
-  const d = await db();
+  const d = await getDB();
   return d.get('conversations', id) as Promise<Conversation | undefined>;
 }
+
 export async function listConversations() {
-  const d = await db();
+  const d = await getDB();
   return d.getAll('conversations') as Promise<Conversation[]>;
 }
+
 export async function deleteConversation(id: string) {
-  const d = await db();
+  const d = await getDB();
   await d.delete('conversations', id);
-  // Optionally delete messages
-  const all = await d.getAll('messages');
-  await Promise.all(all.filter(m=>m.conversationId===id).map(m=>d.delete('messages', m.id)));
+  const all = await d.getAll('messages') as Message[];
+  await Promise.all(all.filter(m => m.conversationId === id).map(m => d.delete('messages', m.id)));
 }
 
 // Messages
 export async function saveMessage(msg: Message) {
-  const d = await db();
+  const d = await getDB();
   await d.put('messages', msg);
 }
+
+export async function getMessage(id: string) {
+  const d = await getDB();
+  return d.get('messages', id) as Promise<Message | undefined>;
+}
+
 export async function listMessages(conversationId: string) {
-  const d = await db();
+  const d = await getDB();
   const all = await d.getAll('messages') as Message[];
-  return all.filter(m=>m.conversationId===conversationId).sort((a,b)=>a.createdAt-b.createdAt);
+  return all.filter(m => m.conversationId === conversationId).sort((a,b)=>a.createdAt - b.createdAt);
+}
+
+export async function deleteMessage(id: string) {
+  const d = await getDB();
+  await d.delete('messages', id);
 }
 
 // Folders
 export async function listFolders() {
-  const d = await db();
+  const d = await getDB();
   return d.getAll('folders') as Promise<Folder[]>;
 }
 export async function saveFolder(f: Folder) {
-  const d = await db();
+  const d = await getDB();
   await d.put('folders', f);
 }
 export async function deleteFolder(id: string) {
-  const d = await db();
+  const d = await getDB();
   await d.delete('folders', id);
 }
