@@ -1,14 +1,24 @@
+// src/components/agents/AgentDetailClient.tsx
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useAgentStore } from '@/stores/agentStore';
 
+import AgentControlPanel from './AgentControlPanel';
+import AgentLiveLogs from './AgentLiveLogs';
+import AgentSettingsEditor from './AgentSettingsEditor';
+import AgentAutoscalePanel from './AgentAutoscalePanel';
+import AgentMetricsCharts from './AgentMetricsCharts';
+
 export default function AgentDetailClient({ id }: { id: string }) {
   const agent = useAgentStore((s) => s.find(id));
+
+  /* --------------------------
+      METRICS + LOGS STATES
+  --------------------------- */
   const [logs, setLogs] = useState<string[]>([]);
   const logEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Fake metrics (replace with real API later)
   const [metrics, setMetrics] = useState({
     cpu: 12,
     memory: 480,
@@ -16,13 +26,19 @@ export default function AgentDetailClient({ id }: { id: string }) {
     status: 'healthy'
   });
 
+  /* --------------------------
+      FAKE STREAM SIMULATION
+  --------------------------- */
   useEffect(() => {
-    // Fake logs generator
-    const interval = setInterval(() => {
-      setLogs((l) => [`Log event ${Math.random().toString(36).slice(2, 7)}`, ...l].slice(0, 100));
+    // Fake log stream
+    const logInterval = setInterval(() => {
+      setLogs((l) => [
+        `Log event ${Math.random().toString(36).slice(2, 7)}`,
+        ...l,
+      ].slice(0, 100));
     }, 2200);
 
-    // Fake metric fluctuations
+    // Fake metric stream
     const metricInterval = setInterval(() => {
       setMetrics((m) => ({
         cpu: Math.max(5, Math.min(99, m.cpu + (Math.random() * 10 - 5))),
@@ -33,75 +49,82 @@ export default function AgentDetailClient({ id }: { id: string }) {
     }, 3000);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(logInterval);
       clearInterval(metricInterval);
     };
   }, []);
 
+  // Auto-scroll logs
   useEffect(() => {
     if (logEndRef.current) {
       logEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [logs]);
 
-  if (!agent) return <div className="p-6 text-gray-700">Agent not found.</div>;
+  if (!agent) return <div className="p-4">Agent not found</div>;
 
+  /* --------------------------
+        MAIN UI STRUCTURE
+  --------------------------- */
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8">
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+
       {/* HEADER */}
-      <header className="flex items-center justify-between">
+      <header className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">{agent.name}</h2>
-          <p className="text-gray-500 text-sm">{agent.description || "AI Agent"}</p>
+          <h1 className="text-2xl font-bold">{agent.name}</h1>
+          <p className="text-gray-500">{agent.description}</p>
         </div>
 
-        <span
-          className={`px-3 py-1 rounded-full text-sm font-medium ${
-            metrics.status === 'healthy'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-yellow-100 text-yellow-700'
-          }`}
-        >
-          {metrics.status}
-        </span>
+        <div className="space-y-3">
+          <div
+            className={`px-3 py-1 rounded-full text-sm ${
+              metrics.status === 'healthy'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-yellow-100 text-yellow-700'
+            }`}
+          >
+            {metrics.status}
+          </div>
+          <div className="text-right text-sm text-gray-500">id: {id}</div>
+        </div>
       </header>
 
-      {/* METRICS */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <MetricCard label="CPU Usage" value={`${metrics.cpu.toFixed(1)}%`} />
-        <MetricCard label="Memory" value={`${metrics.memory.toFixed(0)} MB`} />
-        <MetricCard label="Req/s" value={metrics.rps.toFixed(2)} />
-      </div>
+      {/* LAYOUT */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-      {/* LOGS PANEL */}
-      <div className="bg-white rounded-xl shadow p-4 border">
-        <h3 className="text-lg font-semibold mb-3">Activity Logs</h3>
+        {/* LEFT SIDE — METRICS + LOGS */}
+        <div className="lg:col-span-2 space-y-6">
+          <AgentMetricsCharts metricsStream={metrics} />
 
-        <div className="h-80 overflow-y-auto pr-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-300">
-          {logs.map((log, i) => (
-            <div
-              key={i}
-              className="p-2 rounded border bg-gray-50 text-sm text-gray-700 shadow-sm"
-            >
-              {log}
+          {/* NEW LOG PANEL */}
+          <div className="bg-white rounded-xl shadow p-4 border">
+            <h3 className="text-lg font-semibold mb-3">Activity Logs</h3>
+
+            <div className="h-80 overflow-y-auto pr-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-300">
+              {logs.map((log, i) => (
+                <div
+                  key={i}
+                  className="p-2 rounded border bg-gray-50 text-sm text-gray-700 shadow-sm"
+                >
+                  {log}
+                </div>
+              ))}
+              <div ref={logEndRef} />
             </div>
-          ))}
+          </div>
 
-          <div ref={logEndRef} />
+          {/* (Optional) If you still want the old component */}
+          {/* <AgentLiveLogs agentId={id} /> */}
         </div>
+
+        {/* RIGHT SIDE — CONTROLS */}
+        <aside className="space-y-4">
+          <AgentControlPanel agentId={id} />
+          <AgentAutoscalePanel agentId={id} />
+          <AgentSettingsEditor agentId={id} />
+        </aside>
       </div>
     </div>
   );
-}
-
-/* -------------------------
-   Metric Card Component
--------------------------- */
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-white shadow rounded-xl p-5 border hover:shadow-md transition">
-      <p className="text-gray-500 text-sm">{label}</p>
-      <p className="text-2xl font-semibold text-gray-900 mt-1">{value}</p>
-    </div>
-  );
-    }
+      }
