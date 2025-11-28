@@ -2,7 +2,7 @@ import express from "express";
 import http from "http";
 import path from "path";
 
-import chatRouter from "./routes/chat";
+import chatRoute from "./routes/chat";
 import uploadsRouter from "./routes/uploads";
 
 import { initChatWS } from "./ws/chatServer";
@@ -17,9 +17,9 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Public routes
-app.use(uploadsRouter);                        // /api/uploads
-app.use("/uploads", express.static("uploads")); // static uploads folder
-app.use(chatRouter);
+app.use(uploadsRouter);                         // handles /api/uploads
+app.use("/uploads", express.static("uploads")); // static files
+app.use(chatRoute);                             // handles /api/chat/send
 
 // -------------------------
 // HTTP Server
@@ -27,7 +27,7 @@ app.use(chatRouter);
 const httpServer = http.createServer(app);
 
 // -------------------------
-// Chat WebSocket server (your custom WS handler)
+// Chat WebSocket server
 // -------------------------
 initChatWS(httpServer);
 
@@ -41,10 +41,11 @@ try {
     // Use pure uWS server instead of Node HTTP
     setupUWS();
   } else {
-    // Use Node HTTP + fallback ws server
+    // Node HTTP + ws fallback
     setupWsFallback(httpServer);
   }
 } catch (e) {
+  // If uWS not installed
   setupWsFallback(httpServer);
 }
 
