@@ -1,79 +1,209 @@
 /* =========================================
-   SAFE-AREA VARIABLES (iOS / PWA)
+   ROOT VARIABLES & SAFE AREAS
 ========================================= */
 :root {
+  /* iOS safe area */
   --safe-top: env(safe-area-inset-top);
   --safe-right: env(safe-area-inset-right);
   --safe-bottom: env(safe-area-inset-bottom);
   --safe-left: env(safe-area-inset-left);
-}
 
-/* App shell spacing to avoid notch / status bar overlap */
-.app-shell {
-  padding-top: calc(16px + var(--safe-top));
-  padding-left: calc(16px + var(--safe-left));
-  padding-right: calc(16px + var(--safe-right));
-  padding-bottom: calc(16px + var(--safe-bottom));
-}
+  /* Colors */
+  --bg-main: #071022;
+  --bg-panel: #0f1724;
+  --bg-elevated: #151e31;
+  --accent: #6366f1;
+  --accent-soft: #818cf8;
+  --text: #e6eef7;
+  --text-dim: #94a3b8;
 
-/* Fullscreen PWA safe-area usage */
-.fullscreen-safe {
-  padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bottom);
-  padding-left: var(--safe-left);
-  padding-right: var(--safe-right);
-}
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.08);
 
-/* iOS Install CTA */
-.ios-install-hint {
-  position: fixed;
-  bottom: calc(12px + var(--safe-bottom));
-  left: 12px;
-  right: 12px;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  border-radius: 12px;
-  padding: 8px 12px;
-  z-index: 20000;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
+  /* Animations */
+  --fast: 150ms ease;
+  --medium: 250ms ease;
+  --slow: 350ms ease;
 }
 
 /* =========================================
-   TAILWIND + CUSTOM BASE STYLES
+   BASE GLOBAL STYLES
 ========================================= */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
+html, body {
   margin: 0;
-  font-family: Inter, system-ui;
-  background: #071022;
-  color: #e6eef7;
+  padding: 0;
+  background: var(--bg-main);
+  color: var(--text);
+  font-family: Inter, system-ui, sans-serif;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.panel {
-  background: #0f1724;
-  padding: 12px;
-  border-radius: 8px;
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Prevent layout jump on mobile address bar */
+body {
+  min-height: 100vh;
+}
+
+/* =========================================
+   APP CONTAINER / LAYOUT HELPERS
+========================================= */
+
+/* Prevent notch overlap, provide uniform spacing */
+.app-shell {
+  padding-top: calc(12px + var(--safe-top));
+  padding-left: calc(12px + var(--safe-left));
+  padding-right: calc(12px + var(--safe-right));
+  padding-bottom: calc(12px + var(--safe-bottom));
+}
+
+/* True fullscreen environment */
+.fullscreen-safe {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+  min-height: 100dvh;
+}
+
+/* Centered content wrapper used in dashboards */
+.container-max {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+/* =========================================
+   PANELS, CARDS, SURFACES
+========================================= */
+.panel {
+  background: var(--bg-panel);
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.card {
+  background: var(--bg-elevated);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+/* Glass mode */
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* =========================================
+   INPUTS + BUTTONS
+========================================= */
 
 .input {
-  padding: 8px;
-  border-radius: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: border var(--fast);
 }
 
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Primary button */
 .btn {
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: #6366f1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--accent);
   color: white;
+  font-weight: 500;
+  transition: background var(--fast), transform var(--fast);
 }
 
+.btn:hover {
+  background: var(--accent-soft);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Transparent button */
 .btn-ghost {
   background: transparent;
-  color: var(--ne-text);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 8px;
+  transition: background var(--fast);
 }
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Subtle border button */
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  transition: border var(--fast), background var(--fast);
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--accent);
+}
+
+/* =========================================
+   iOS PWA INSTALL HINT
+========================================= */
+.ios-install-hint {
+  position: fixed;
+  bottom: calc(12px + var(--safe-bottom));
+  left: 12px;
+  right: 12px;
+  background: rgba(0,0,0,0.65);
+  color: white;
+  border-radius: 14px;
+  padding: 10px 14px;
+  z-index: 9999;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(8px);
+}
+
+/* =========================================
+   SCROLLBARS (LIGHT & MODERN)
+========================================= */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.2);
+   }
