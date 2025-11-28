@@ -15,6 +15,7 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "incremental": true,
+
     "jsx": "preserve",
     "jsxImportSource": "react",
 
@@ -23,11 +24,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@/components/*": ["src/components/*"],
       "@/app/*": ["src/app/*"],
+      "@/components/*": ["src/components/*"],
+      "@/stores/*": ["src/stores/*"],
       "@/lib/*": ["src/lib/*"],
       "@/hooks/*": ["src/hooks/*"],
-      "@/stores/*": ["src/stores/*"],
       "@/utils/*": ["src/utils/*"],
       "@/config/*": ["src/config/*"],
       "@/types/*": ["src/types/*"]
@@ -40,6 +41,5 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-
   "exclude": ["node_modules"]
 }
