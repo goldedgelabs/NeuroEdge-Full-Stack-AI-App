@@ -1,5 +1,7 @@
 # backend-py/app/main.py
 from fastapi import FastAPI
+from routes.audio import router as audio_router
+app.include_router(audio_router)
 from routes.generate import router as generate_router
 from routes.transcribe import router as transcribe_router  # if you added transcribe earlier
 
