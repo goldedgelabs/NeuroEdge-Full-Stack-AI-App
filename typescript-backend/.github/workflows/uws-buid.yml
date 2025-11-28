@@ -1,0 +1,26 @@
+name: Build uWS artifact
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: sudo apt-get update && sudo apt-get install -y build-essential python3 cmake
+
+      - run: npm ci
+      - run: npm run build
+
+      - run: tar -czf uws-build.tar.gz node_modules/uWebSockets.js
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uws-build
+          path: uws-build.tar.gz
