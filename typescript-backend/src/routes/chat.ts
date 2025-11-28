@@ -1,24 +1,23 @@
 // backend-ts/src/routes/chat.ts
-import { Router } from 'express';
-import { routeToEngine } from '../services/engineRouter';
+import { Router } from "express";
+import { routeToEngine } from "../services/engineRouter";
 
 const router = Router();
 
-/**
- * POST /api/chat/send
- * body: { conversationId, message, preferredEngine? }
- */
-router.post('/api/chat/send', async (req, res) => {
-  const { conversationId, message, preferredEngine } = req.body;
-  if (!conversationId || !message) return res.status(400).json({ error: 'missing conversationId or message' });
+router.post("/api/chat/send", async (req, res) => {
+  const { conversationId, text, preferredEngine } = req.body;
 
+  if (!conversationId || !text) {
+    return res.status(400).json({ error: "Invalid payload" });
+  }
+
+  // Fire-and-forget — engines will stream back via WS
   try {
-    // routeToEngine will forward to python/go and return immediately (or throw)
-    await routeToEngine({ conversationId, message, preferredEngine });
-    return res.json({ ok: true, streamId: conversationId });
+    routeToEngine(conversationId, text, preferredEngine);
+    return res.json({ status: "accepted", streamId: conversationId });
   } catch (err) {
-    console.error('routeToEngine error', err);
-    return res.status(500).json({ ok: false, error: 'failed to enqueue' });
+    console.error("routeToEngine error:", err);
+    return res.status(500).json({ error: "failed to enqueue" });
   }
 });
 
