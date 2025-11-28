@@ -1,27 +1,24 @@
 // backend-ts/src/routes/chat.ts
-import { Router } from "express";
-import axios from "axios";
+import { Router } from 'express';
+import { routeToEngine } from '../services/engineRouter';
 
 const router = Router();
 
 /**
- * User sends message -> backend accepts -> triggers python generation
- * Returns immediately:
- * { ok: true, streamId: "conversationId" }
+ * POST /api/chat/send
+ * body: { conversationId, message, preferredEngine? }
  */
-router.post("/api/chat/send", async (req, res) => {
-  const { conversationId, message } = req.body;
+router.post('/api/chat/send', async (req, res) => {
+  const { conversationId, message, preferredEngine } = req.body;
+  if (!conversationId || !message) return res.status(400).json({ error: 'missing conversationId or message' });
 
-  // Forward to Python LLM engine
   try {
-    await axios.post(process.env.PY_BACKEND_URL + "/api/generate", {
-      conversationId,
-      message
-    });
-
+    // routeToEngine will forward to python/go and return immediately (or throw)
+    await routeToEngine({ conversationId, message, preferredEngine });
     return res.json({ ok: true, streamId: conversationId });
   } catch (err) {
-    return res.status(500).json({ ok: false, error: "Engine failed" });
+    console.error('routeToEngine error', err);
+    return res.status(500).json({ ok: false, error: 'failed to enqueue' });
   }
 });
 
