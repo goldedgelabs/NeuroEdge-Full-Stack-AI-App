@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  ts:
+    build:
+      context: ./backend-ts
+      dockerfile: Dockerfile
+    image: neuroedge-ts
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - PY_BACKEND_URL=http://python:5000
+      - GO_BACKEND_URL=http://go:9000
+      - INTERNAL_API_KEY=replace_internal_key
+      - JWT_SECRET=replace_jwt_secret
+      - TS_WS_HOST=ws://ts:4000
+    volumes:
+      - ./backend-ts/uploads:/app/uploads
+
+  python:
+    build:
+      context: ./backend-py
+      dockerfile: Dockerfile
+    image: neuroedge-py
+    ports:
+      - "5000:5000"
+    environment:
+      - INTERNAL_API_KEY=replace_internal_key
+      - TS_WS_HOST=ws://ts:4000
+
+  go:
+    build:
+      context: ./backend-go
+      dockerfile: Dockerfile
+    image: neuroedge-go
+    ports:
+      - "9000:9000"
+    environment:
+      - INTERNAL_API_KEY=replace_internal_key
+      - TS_WS_HOST=ws://ts:4000
+
+volumes:
+  uploads:
