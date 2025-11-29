@@ -13,10 +13,7 @@ const nextConfig = {
     ],
   },
 
-  experimental: {
-    serverActions: true,
-  },
-
+  
   env: {
     NEXT_PUBLIC_TS_BACKEND_URL: process.env.TS_BACKEND_URL || 'http://localhost:4000',
     NEXT_PUBLIC_PY_BACKEND_URL: process.env.PY_BACKEND_URL || 'http://localhost:5000',
